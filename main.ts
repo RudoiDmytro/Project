@@ -1,4 +1,3 @@
-// library.ts
 
 // -------------------- Book Object (Builder) --------------------
 
@@ -6,7 +5,7 @@ interface IBook {
   title: string;
   author: string;
   year: number;
-  id: string; // Unique ID for each book
+  id: string;
 }
 
 class Book implements IBook {
@@ -15,7 +14,6 @@ class Book implements IBook {
   year: number;
   id: string;
   genre?: string;
-  isbn?: string;
 
   constructor(title: string, author: string, year: number, id: string) {
     this.title = title;
@@ -35,7 +33,6 @@ class BookBuilder {
   private year: number;
   private id: string;
   private genre?: string;
-  private isbn?: string;
 
   constructor(title: string, author: string, year: number, id: string) {
     this.title = title;
@@ -49,15 +46,9 @@ class BookBuilder {
     return this;
   }
 
-  setIsbn(isbn: string): BookBuilder {
-    this.isbn = isbn;
-    return this;
-  }
-
   build(): Book {
     const book = new Book(this.title, this.author, this.year, this.id);
     book.genre = this.genre;
-    book.isbn = this.isbn;
     return book;
   }
 }
@@ -120,10 +111,10 @@ interface IObservable {
 class Library implements IObservable {
   private books: Book[] = [];
   private observers: IObserver[] = [];
-  private localStorageKey = "bookLibrary"; // Key for local storage
+  private localStorageKey = "bookLibrary";
 
   constructor() {
-    this.loadFromLocalStorage(); // Load books on initialization
+    this.loadFromLocalStorage();
   }
 
   attach(observer: IObserver): void {
@@ -163,7 +154,7 @@ class Library implements IObservable {
     if (storedBooks) {
       try {
         const parsedBooks = JSON.parse(storedBooks) as IBook[];
-        // Validate the parsed books to ensure they conform to the IBook interface
+
         if (Array.isArray(parsedBooks)) {
           this.books = parsedBooks.map(
             (bookData) =>
@@ -179,9 +170,9 @@ class Library implements IObservable {
         }
       } catch (error) {
         console.error("Error parsing books from local storage:", error);
-        // Optionally, clear local storage if parsing fails
+
         localStorage.removeItem(this.localStorageKey);
-        this.books = []; // Ensure books is empty to avoid errors.
+        this.books = [];
       }
     }
   }
@@ -189,26 +180,25 @@ class Library implements IObservable {
 
 class DOMObserver implements IObserver {
   private bookListElement: HTMLElement;
-  private library: Library; // Store a reference to the Library
+  private library: Library;
 
   constructor(bookListElement: HTMLElement, library: Library) {
     this.bookListElement = bookListElement;
-    this.library = library; // Store the library instance
+    this.library = library;
   }
 
   update(library: Library): void {
-    this.bookListElement.innerHTML = ""; // Clear the list
+    this.bookListElement.innerHTML = "";
     library.getBooks().forEach((book) => {
       const bookItem = document.createElement("div");
       bookItem.classList.add("book-item");
       bookItem.innerHTML = book.displayInfo();
 
-      // Add delete button
       const deleteButton = document.createElement("button");
       deleteButton.classList.add("delete-button");
       deleteButton.textContent = "Delete";
       deleteButton.addEventListener("click", () => {
-        // Create a RemoveBookCommand and execute it
+
         const removeBookCommand = new RemoveBookCommand(this.library, book);
         removeBookCommand.execute();
       });
@@ -278,9 +268,9 @@ function generateId(): string {
 document.addEventListener("DOMContentLoaded", () => {
   const library = new Library();
   const bookListElement = document.getElementById("bookList") as HTMLDivElement;
-  const domObserver = new DOMObserver(bookListElement, library); // Pass the library instance
+  const domObserver = new DOMObserver(bookListElement, library);
   library.attach(domObserver);
-  domObserver.update(library); // Initial update to load data
+  domObserver.update(library);
 
   const searchManager = new SearchManager(new TitleSearchStrategy());
 
@@ -301,7 +291,7 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    const id = generateId(); // Generate unique ID
+    const id = generateId();
     const newBook = new BookBuilder(title, author, year, id).build();
     const addBookCommand = new AddBookCommand(library, newBook);
     addBookCommand.execute();
